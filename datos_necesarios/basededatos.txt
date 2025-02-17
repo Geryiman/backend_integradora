@@ -1,0 +1,94 @@
+CREATE DATABASE ECOPET;
+USE ECOPET;
+
+-- Tabla de Usuarios
+CREATE TABLE Usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    puntos_totales INT DEFAULT 0 -- Se almacena el total de puntos acumulados
+);
+
+-- Tabla de Tareas Disponibles
+CREATE TABLE Tareas (
+    id_tarea INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion VARCHAR(255) NOT NULL,
+    puntos INT NOT NULL
+);
+
+-- Tabla de Tareas Completadas por Usuario
+CREATE TABLE TareasCompletadas (
+    id_completada INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_tarea INT NOT NULL,
+    fecha_completada DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_tarea) REFERENCES Tareas(id_tarea) ON DELETE CASCADE
+);
+
+-- Tabla de Depósitos de reciclaje
+CREATE TABLE Depositos (
+    id_deposito INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    peso_basura DECIMAL(5,2) NOT NULL,
+    total_puntos INT DEFAULT 0,
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE
+);
+
+-- Tabla de Recompensas
+CREATE TABLE Recompensas (
+    id_recompensa INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    puntos_necesarios INT NOT NULL
+);
+
+-- Tabla de Canjes de Recompensas
+CREATE TABLE Canjes (
+    id_canje INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_recompensa INT NOT NULL,
+    fecha_canje DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_recompensa) REFERENCES Recompensas(id_recompensa) ON DELETE CASCADE
+);
+
+-- Tabla de Rangos con actualización según puntos acumulados
+CREATE TABLE Rangos (
+    id_rango INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_rango VARCHAR(100) NOT NULL,
+    puntos_minimos INT NOT NULL,
+    puntos_maximos INT NOT NULL
+);
+
+-- Tabla de Asignación de Rango a Usuarios (se actualiza cuando ganan puntos)
+CREATE TABLE UsuarioRangos (
+    id_usuario INT PRIMARY KEY,
+    id_rango INT NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_rango) REFERENCES Rangos(id_rango) ON DELETE CASCADE
+);
+
+-- Tabla de Historial de Actividades (Tareas, Desafíos, Canjes)
+CREATE TABLE Historial (
+    id_historial INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    tipo_actividad ENUM('Tarea Completada', 'Desafío', 'Canje de Recompensa') NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
+    puntos_ganados INT NOT NULL DEFAULT 0,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE
+);
+
+-- Insertar Rangos Predefinidos
+INSERT INTO Rangos (nombre_rango, puntos_minimos, puntos_maximos) VALUES
+    ('🟢 Aprendiz del Reciclaje', 0, 99),
+    ('🔵 Recolector Novato', 100, 299),
+    ('🟣 Eco-Explorador', 300, 599),
+    ('🟠 Guardián del PET', 600, 999),
+    ('🟡 Reciclador Experto', 1000, 1499),
+    ('⚪ Eco-Héroe', 1500, 2499),
+    ('🟤 Embajador del Reciclaje', 2500, 3999),
+    ('🏆 Maestro del PET', 4000, 5999),
+    ('🏅 Leyenda Verde', 6000, 99999);
