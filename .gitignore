@@ -1,2 +1,75 @@
+### Node.js ###
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 package-lock.json
+yarn.lock
+
+### React Native / Expo ###
+.expo/
+.expo-shared/
+android/
+ios/
+
+### Archivos de configuración del entorno ###
+.env
+
+### Archivos de caché ###
+.cache/
+metro-cache/
+
+### Archivos de compilación ###
+build/
+dist/
+
+### Archivos del sistema operativo ###
+.DS_Store
+Thumbs.db
+
+### Archivos de logs ###
+*.log
+logs/
+debug.log
+error.log
+
+### Configuración de IDEs ###
+.vscode/
+.idea/
+*.iml
+
+### Archivos generados por React Native ###
+*.keystore
+*.gradle
+*.hprof
+
+### Archivos temporales de Expo ###
+.expo/
+.expo-shared/
+
+### Archivos de depuración de Android ###
+android/app/debug.keystore
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/src/debug/
+android/app/src/androidTest/
+android/app/src/test/
+
+### Archivos innecesarios en iOS ###
+ios/Pods/
+ios/.DS_Store
+ios/build/
+ios/DerivedData/
+ios/*.xcworkspace/
+
+### Archivos de caché de Metro Bundler ###
+metro-cache/
+
+### Archivos de caché de React Native ###
+react-native/
+
+### Directorios específicos del proyecto ###
+datos_necesarios/
+uploads/
+8
