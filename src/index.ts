@@ -4,10 +4,11 @@ import path from "path";
 import dotenv from "dotenv";
 
 import usuarioRoutes from "./routes/usuario.routes";
-import tareaRoutes from "./routes/tarea.routes"; // ✅ Ya estaba presente
+import tareaRoutes from "./routes/tarea.routes";
 import depositoRoutes from "./routes/deposito.routes";
 import recompensaRoutes from "./routes/recompensa.routes";
 import canjeRoutes from "./routes/canje.routes";
+import qrRoutes from "./routes/qr.routes"; // ✅ Nueva ruta de QR
 
 dotenv.config();
 
@@ -26,12 +27,13 @@ app.get("/", (req, res) => {
 });
 
 // ✅ Rutas del backend
-app.use("/api", tareaRoutes); // ✅ Agregado para mantener la compatibilidad con la otra versión
+app.use("/api", tareaRoutes); // ✅ Mantiene compatibilidad con la otra versión
 app.use("/usuarios", usuarioRoutes);
 app.use("/tareas", tareaRoutes);
 app.use("/depositos", depositoRoutes);
 app.use("/recompensas", recompensaRoutes);
 app.use("/canjes", canjeRoutes);
+app.use("/api/qr", qrRoutes); // ✅ Nueva ruta de QR
 
 // ✅ Iniciar el servidor
 app.listen(PORT, () => {

@@ -4,5 +4,5 @@ export interface Usuario {
   email: string;
   password: string;
   puntos_totales?: number;
-  profileImage?: string; // ✅ Nuevo campo para la imagen de perfil
+  profileImage?: string;
 }
