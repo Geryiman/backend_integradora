@@ -18,6 +18,6 @@ router.get("/:id", getUsuarioById);
 router.put("/:id", updateUsuario);
 router.delete("/:id", deleteUsuario);
 router.post("/login", loginUsuario);
-router.post("/:id_usuario/upload", upload.single("profileImage"), uploadProfileImage); // ✅ Asegura que no hay errores de tipado
+router.post("/:id_usuario/upload", upload.single("profileImage"), uploadProfileImage);
 
 export default router;
