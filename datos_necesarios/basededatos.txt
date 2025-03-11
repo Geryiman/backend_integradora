@@ -1,68 +1,115 @@
-CREATE DATABASE ECOPET;
-USE ECOPET;
+-- 📌 Eliminar la base de datos si ya existe y crearla nuevamente
+DROP DATABASE IF EXISTS ecopet;
+CREATE DATABASE ecopet;
+USE ecopet;
 
--- Tabla de Usuarios
+-- 📌 Tabla de Tipo de Usuarios
+CREATE TABLE TipoUsuarios (
+    id_tipo INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- 📌 Tabla de Usuarios
 CREATE TABLE Usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    puntos_totales INT DEFAULT 0 -- Se almacena el total de puntos acumulados
+    puntos_totales INT DEFAULT 0,
+    profileImage VARCHAR(255) NULL,
+    id_tipo INT DEFAULT 1,
+    FOREIGN KEY (id_tipo) REFERENCES TipoUsuarios(id_tipo)
 );
 
--- Tabla de Tareas Disponibles
+-- 📌 Tabla de Videos Educativos sobre Reciclaje
+CREATE TABLE Videos (
+    id_video INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    url_video VARCHAR(500) NOT NULL,  -- URL del video (YouTube, Vimeo, o almacenamiento propio)
+    descripcion TEXT NOT NULL,
+    puntos INT NOT NULL CHECK (puntos > 0),
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 📌 Tabla de Registro de Videos Vistos por Usuarios
+CREATE TABLE Usuario_Videos (
+    id_usuario INT NOT NULL,
+    id_video INT NOT NULL,
+    fecha_visto TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_usuario, id_video),
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_video) REFERENCES Videos(id_video) ON DELETE CASCADE
+);
+
+-- 📌 Tabla de Retos / Tareas Disponibles
 CREATE TABLE Tareas (
     id_tarea INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255) NOT NULL,
-    puntos INT NOT NULL
+    puntos INT NOT NULL CHECK (puntos > 0),
+    tipo ENUM('Normal', 'Especial') DEFAULT 'Normal',
+    fecha_inicio DATETIME NULL,
+    fecha_fin DATETIME NULL
 );
 
--- Tabla de Tareas Completadas por Usuario
-CREATE TABLE TareasCompletadas (
-    id_completada INT AUTO_INCREMENT PRIMARY KEY,
+-- 📌 Tabla de Códigos QR (Vinculados a Retos)
+CREATE TABLE CodigosQR (
+    id_qr INT AUTO_INCREMENT PRIMARY KEY,
+    id_tarea INT NOT NULL,
+    codigo VARCHAR(20) UNIQUE NOT NULL,
+    estado ENUM('Generado', 'Canjeado') DEFAULT 'Generado',
+    fecha_generado DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_canjeado DATETIME NULL,
+    FOREIGN KEY (id_tarea) REFERENCES Tareas(id_tarea) ON DELETE CASCADE
+);
+
+-- 📌 Tabla de Relación: Usuarios que completan Retos
+CREATE TABLE Usuario_Tarea (
     id_usuario INT NOT NULL,
     id_tarea INT NOT NULL,
-    fecha_completada DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_completada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_usuario, id_tarea),
     FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_tarea) REFERENCES Tareas(id_tarea) ON DELETE CASCADE
 );
 
--- Tabla de Depósitos de reciclaje
+-- 📌 Tabla de Depósitos de Reciclaje
 CREATE TABLE Depositos (
     id_deposito INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
-    peso_basura DECIMAL(5,2) NOT NULL,
-    total_puntos INT DEFAULT 0,
+    peso_basura DECIMAL(5,2) NOT NULL CHECK (peso_basura > 0),
+    total_puntos INT GENERATED ALWAYS AS (peso_basura * 10) STORED,
     FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE
 );
 
--- Tabla de Recompensas
+-- 📌 Tabla de Recompensas
 CREATE TABLE Recompensas (
     id_recompensa INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    puntos_necesarios INT NOT NULL
+    puntos_necesarios INT NOT NULL CHECK (puntos_necesarios > 0)
 );
 
--- Tabla de Canjes de Recompensas
+-- 📌 Tabla de Canjes de Recompensas 🎟️
 CREATE TABLE Canjes (
     id_canje INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     id_recompensa INT NOT NULL,
+    id_qr INT NOT NULL, -- Relacionado con el QR utilizado
     fecha_canje DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
-    FOREIGN KEY (id_recompensa) REFERENCES Recompensas(id_recompensa) ON DELETE CASCADE
+    FOREIGN KEY (id_recompensa) REFERENCES Recompensas(id_recompensa) ON DELETE CASCADE,
+    FOREIGN KEY (id_qr) REFERENCES CodigosQR(id_qr) ON DELETE CASCADE
 );
 
--- Tabla de Rangos con actualización según puntos acumulados
+-- 📌 Tabla de Rangos 🏅
 CREATE TABLE Rangos (
     id_rango INT AUTO_INCREMENT PRIMARY KEY,
     nombre_rango VARCHAR(100) NOT NULL,
-    puntos_minimos INT NOT NULL,
-    puntos_maximos INT NOT NULL
+    puntos_minimos INT NOT NULL CHECK (puntos_minimos >= 0),
+    puntos_maximos INT NOT NULL CHECK (puntos_maximos > puntos_minimos)
 );
 
--- Tabla de Asignación de Rango a Usuarios (se actualiza cuando ganan puntos)
+-- 📌 Tabla de Asignación de Rangos a Usuarios
 CREATE TABLE UsuarioRangos (
     id_usuario INT PRIMARY KEY,
     id_rango INT NOT NULL,
@@ -70,18 +117,29 @@ CREATE TABLE UsuarioRangos (
     FOREIGN KEY (id_rango) REFERENCES Rangos(id_rango) ON DELETE CASCADE
 );
 
--- Tabla de Historial de Actividades (Tareas, Desafíos, Canjes)
+-- 📌 Tabla de Historial de Actividades 📜
 CREATE TABLE Historial (
     id_historial INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
-    tipo_actividad ENUM('Tarea Completada', 'Desafío', 'Canje de Recompensa') NOT NULL,
+    tipo_actividad ENUM('Tarea Completada', 'Desafío', 'Canje de Recompensa', 'Video Visto') NOT NULL,
+    id_tarea INT NULL,
+    id_video INT NULL,
+    id_deposito INT NULL,
+    id_canje INT NULL,
     descripcion VARCHAR(255) NOT NULL,
     puntos_ganados INT NOT NULL DEFAULT 0,
     fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_tarea) REFERENCES Tareas(id_tarea) ON DELETE SET NULL,
+    FOREIGN KEY (id_video) REFERENCES Videos(id_video) ON DELETE SET NULL,
+    FOREIGN KEY (id_deposito) REFERENCES Depositos(id_deposito) ON DELETE SET NULL,
+    FOREIGN KEY (id_canje) REFERENCES Canjes(id_canje) ON DELETE SET NULL
 );
 
--- Insertar Rangos Predefinidos
+-- 📌 Insertar Tipos de Usuario
+INSERT INTO TipoUsuarios (tipo) VALUES ('Usuario'), ('Administrador');
+
+-- 📌 Insertar Rangos Predefinidos
 INSERT INTO Rangos (nombre_rango, puntos_minimos, puntos_maximos) VALUES
     ('🟢 Aprendiz del Reciclaje', 0, 99),
     ('🔵 Recolector Novato', 100, 299),
@@ -91,4 +149,10 @@ INSERT INTO Rangos (nombre_rango, puntos_minimos, puntos_maximos) VALUES
     ('⚪ Eco-Héroe', 1500, 2499),
     ('🟤 Embajador del Reciclaje', 2500, 3999),
     ('🏆 Maestro del PET', 4000, 5999),
-    ('🏅 Leyenda Verde', 6000, 99999);
+    ('🏅 Leyenda Verde', 6000, 99999);
+
+-- 📌 Insertar algunos videos de prueba
+INSERT INTO Videos (titulo, url_video, descripcion, puntos) VALUES
+    ('Proceso de reciclaje de botellas PET/Como procesar el PET', 'https://www.youtube.com/watch?v=SpJhOTTG6X4', 'Este video muestra detalladamente el proceso de reciclaje de botellas de PET.', 500),
+    ('La IMPORTANCIA de RECICLAR para el MEDIO AMBIENT', 'https://www.youtube.com/watch?v=xcl3DfEt04c', 'Este video explica la importancia del reciclaje y sus beneficios para el medio ambiente.', 200),
+    ('Cómo Reciclar Plástico en Casa ♻️ La Guía Completa​', 'https://www.youtube.com/watch?v=Cm0RVNidMf8', 'Este video ofrece una guía completa sobre cómo reciclar plásticos en casa.', 600);
