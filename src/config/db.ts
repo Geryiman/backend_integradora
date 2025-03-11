@@ -1,3 +1,4 @@
+import { Query } from './../../node_modules/mysql2/typings/mysql/index.d';
 import mysql from "mysql2";
 import dotenv from "dotenv";
 

@@ -10,6 +10,7 @@ import recompensaRoutes from "./routes/recompensa.routes";
 import canjeRoutes from "./routes/canje.routes";
 import qrRoutes from "./routes/qr.routes";
 import videosRoutes from "./routes/videos.routes"; 
+import premiosRoutes from "./routes/premios.routes";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use("/recompensas", recompensaRoutes);
 app.use("/canjes", canjeRoutes);
 app.use("/api/qr", qrRoutes);
 app.use("/api/videos", videosRoutes);
+app.use("/premios", premiosRoutes);
 
 
 app.listen(PORT, () => {
