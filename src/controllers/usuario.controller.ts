@@ -6,7 +6,8 @@ import { Request, Response } from "express";
 import pool from "../config/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-const BASE_URL = "http://192.168.1.27:3000";
+
+const BASE_URL = "https://ecopet-r77q7.ondigitalocean.app/";
 const UPLOADS_FOLDER = path.join(__dirname, "../../uploads");
 
 if (!fs.existsSync(UPLOADS_FOLDER)) {

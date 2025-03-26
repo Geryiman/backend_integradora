@@ -18,7 +18,7 @@ const path_1 = __importDefault(require("path"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const multer_1 = __importDefault(require("multer"));
 const db_1 = __importDefault(require("../config/db"));
-const BASE_URL = "http://192.168.1.27:3000";
+const BASE_URL = "https://ecopet-r77q7.ondigitalocean.app/";
 const UPLOADS_FOLDER = path_1.default.join(__dirname, "../../uploads");
 if (!fs_1.default.existsSync(UPLOADS_FOLDER)) {
     fs_1.default.mkdirSync(UPLOADS_FOLDER, { recursive: true });
