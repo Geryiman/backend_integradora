@@ -20,14 +20,24 @@ export class TareaModel {
     puntos: number,
     tipo: string,
     fecha_inicio?: string,
-    fecha_fin?: string
+    fecha_fin?: string,
+    botellas_necesarias: number = 1
   ) {
     const [result] = await pool.query<OkPacket>(
-      `INSERT INTO Tareas (descripcion, puntos, tipo, fecha_inicio, fecha_fin)
-       VALUES (?, ?, ?, ?, ?)`,
-      [descripcion, puntos, tipo, fecha_inicio || null, fecha_fin || null]
+      `INSERT INTO Tareas (descripcion, puntos, tipo, fecha_inicio, fecha_fin, botellas_necesarias)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [descripcion, puntos, tipo, fecha_inicio || null, fecha_fin || null, botellas_necesarias]
     );
-    return { id_tarea: result.insertId, descripcion, puntos, tipo, fecha_inicio, fecha_fin };
+
+    return {
+      id_tarea: result.insertId,
+      descripcion,
+      puntos,
+      tipo,
+      fecha_inicio,
+      fecha_fin,
+      botellas_necesarias
+    };
   }
 
   static async updateTarea(
@@ -36,14 +46,21 @@ export class TareaModel {
     puntos: number,
     tipo: string,
     fecha_inicio?: string,
-    fecha_fin?: string
+    fecha_fin?: string,
+    botellas_necesarias: number = 1
   ) {
     await pool.query<OkPacket>(
-      `UPDATE Tareas SET descripcion = ?, puntos = ?, tipo = ?, fecha_inicio = ?, fecha_fin = ?
+      `UPDATE Tareas
+       SET descripcion = ?, puntos = ?, tipo = ?, fecha_inicio = ?, fecha_fin = ?, botellas_necesarias = ?
        WHERE id_tarea = ?`,
-      [descripcion, puntos, tipo, fecha_inicio || null, fecha_fin || null, id]
+      [descripcion, puntos, tipo, fecha_inicio || null, fecha_fin || null, botellas_necesarias, id]
     );
-    return { message: "Tarea actualizada correctamente", id_tarea: id };
+
+    return {
+      message: "Tarea actualizada correctamente",
+      id_tarea: id,
+      botellas_necesarias
+    };
   }
 
   static async deleteTarea(id: number) {

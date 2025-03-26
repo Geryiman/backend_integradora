@@ -5,7 +5,7 @@ import multer from "multer";
 import { Request, Response } from "express";
 import pool from "../config/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, PutObjectCommandInput } from "@aws-sdk/client-s3";
 import s3Client from "../config/s3Client";
 
 const BASE_URL = "https://salud-magenes.sfo2.digitaloceanspaces.com";
@@ -140,7 +140,7 @@ export const uploadProfileImage = async (
     const fileName = `perfil-${Date.now()}-${req.file.originalname}`;
     const key = `perfiles/${id_usuario}/${fileName}`;
 
-    const uploadParams = {
+    const uploadParams: PutObjectCommandInput = {
       Bucket: BUCKET_NAME,
       Key: key,
       Body: req.file.buffer,

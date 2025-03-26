@@ -29,8 +29,15 @@ export const getTareaById = async (req: Request, res: Response) => {
 // 📌 Crear nueva tarea
 export const createTarea = async (req: Request, res: Response) => {
   try {
-    const { descripcion, puntos, tipo, fecha_inicio, fecha_fin } = req.body;
-    const nueva = await TareaModel.createTarea(descripcion, puntos, tipo, fecha_inicio, fecha_fin);
+    const { descripcion, puntos, tipo, fecha_inicio, fecha_fin, botellas_necesarias } = req.body;
+    const nueva = await TareaModel.createTarea(
+      descripcion,
+      puntos,
+      tipo,
+      fecha_inicio,
+      fecha_fin,
+      botellas_necesarias
+    );
     res.status(201).json(nueva);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -41,8 +48,16 @@ export const createTarea = async (req: Request, res: Response) => {
 export const updateTarea = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { descripcion, puntos, tipo, fecha_inicio, fecha_fin } = req.body;
-    const actualizada = await TareaModel.updateTarea(Number(id), descripcion, puntos, tipo, fecha_inicio, fecha_fin);
+    const { descripcion, puntos, tipo, fecha_inicio, fecha_fin, botellas_necesarias } = req.body;
+    const actualizada = await TareaModel.updateTarea(
+      Number(id),
+      descripcion,
+      puntos,
+      tipo,
+      fecha_inicio,
+      fecha_fin,
+      botellas_necesarias
+    );
     res.json(actualizada);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

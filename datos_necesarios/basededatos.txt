@@ -25,7 +25,7 @@ CREATE TABLE Usuarios (
 CREATE TABLE Videos (
     id_video INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
-    url_video VARCHAR(500) NOT NULL,  -- URL del video (YouTube, Vimeo, o almacenamiento propio)
+    url_video VARCHAR(500) NOT NULL,
     descripcion TEXT NOT NULL,
     puntos INT NOT NULL CHECK (puntos > 0),
     fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -41,14 +41,15 @@ CREATE TABLE Usuario_Videos (
     FOREIGN KEY (id_video) REFERENCES Videos(id_video) ON DELETE CASCADE
 );
 
--- 📌 Tabla de Retos / Tareas Disponibles
+-- 📌 Tabla de Retos / Tareas Disponibles (🆕 incluye botellas_necesarias)
 CREATE TABLE Tareas (
     id_tarea INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255) NOT NULL,
     puntos INT NOT NULL CHECK (puntos > 0),
     tipo ENUM('Normal', 'Especial') DEFAULT 'Normal',
     fecha_inicio DATETIME NULL,
-    fecha_fin DATETIME NULL
+    fecha_fin DATETIME NULL,
+    botellas_necesarias INT NOT NULL DEFAULT 1  -- Nueva columna
 );
 
 -- 📌 Tabla de Códigos QR (Vinculados a Retos)
@@ -94,7 +95,7 @@ CREATE TABLE Canjes (
     id_canje INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     id_recompensa INT NOT NULL,
-    id_qr INT NOT NULL, -- Relacionado con el QR utilizado
+    id_qr INT NOT NULL,
     fecha_canje DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_recompensa) REFERENCES Recompensas(id_recompensa) ON DELETE CASCADE,
