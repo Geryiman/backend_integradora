@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const usuario_controller_1 = require("../controllers/usuario.controller");
+const router = (0, express_1.Router)();
+router.get("/", usuario_controller_1.getUsuarios);
+router.post("/", usuario_controller_1.createUsuario);
+router.get("/:id", usuario_controller_1.getUsuarioById);
+router.put("/:id", usuario_controller_1.updateUsuario);
+router.delete("/:id", usuario_controller_1.deleteUsuario);
+router.post("/login", usuario_controller_1.loginUsuario);
+router.post("/:id_usuario/upload", usuario_controller_1.upload.single("profileImage"), usuario_controller_1.uploadProfileImage);
+exports.default = router;
