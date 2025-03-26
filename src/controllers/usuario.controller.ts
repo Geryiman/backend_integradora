@@ -5,21 +5,14 @@ import multer from "multer";
 import { Request, Response } from "express";
 import pool from "../config/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import s3Client from "../config/s3Client";
 
+const BASE_URL = "https://salud-magenes.sfo2.digitaloceanspaces.com";
+const BUCKET_NAME = "salud-magenes";
 
-const BASE_URL = "https://ecopet-r77q7.ondigitalocean.app/";
-const UPLOADS_FOLDER = path.join(__dirname, "../../uploads");
-
-if (!fs.existsSync(UPLOADS_FOLDER)) {
-  fs.mkdirSync(UPLOADS_FOLDER, { recursive: true });
-}
-
-// 📦 Configuración multer
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_FOLDER),
-  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-});
-
+// 📦 Configuración multer (para buffer en memoria)
+const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
 // =======================
@@ -121,7 +114,7 @@ export const getUsuarioById = async (req: Request, res: Response): Promise<void>
     }
 
     const user = result[0];
-    user.profileImage = user.profileImage || `${BASE_URL}/uploads/default-profile.jpg`;
+    user.profileImage = user.profileImage || `${BASE_URL}/default-profile.jpg`;
 
     res.json(user);
   } catch (err: any) {
@@ -130,7 +123,7 @@ export const getUsuarioById = async (req: Request, res: Response): Promise<void>
 };
 
 // =======================
-// 📌 Subir/Actualizar imagen de perfil
+// 📌 Subir/Actualizar imagen de perfil a DigitalOcean Spaces
 // =======================
 export const uploadProfileImage = async (
   req: Request & { file?: Express.Multer.File },
@@ -143,12 +136,25 @@ export const uploadProfileImage = async (
     return;
   }
 
-  const profileImage = `${BASE_URL}/uploads/${req.file.filename}`;
-
   try {
+    const fileName = `perfil-${Date.now()}-${req.file.originalname}`;
+    const key = `perfiles/${id_usuario}/${fileName}`;
+
+    const uploadParams = {
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: req.file.buffer,
+      ACL: "public-read",
+      ContentType: req.file.mimetype,
+    };
+
+    await s3Client.send(new PutObjectCommand(uploadParams));
+
+    const imageUrl = `${BASE_URL}/${key}`;
+
     const [result] = await pool.query<ResultSetHeader>(
       "UPDATE Usuarios SET profileImage = ? WHERE id_usuario = ?",
-      [profileImage, id_usuario]
+      [imageUrl, id_usuario]
     );
 
     if (result.affectedRows === 0) {
@@ -156,7 +162,7 @@ export const uploadProfileImage = async (
       return;
     }
 
-    res.json({ message: "Imagen actualizada correctamente", profileImage });
+    res.json({ message: "Imagen actualizada correctamente", profileImage: imageUrl });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
