@@ -2,18 +2,18 @@
   "name": "backend_integradora",
   "version": "1.0.0",
   "main": "index.js",
-"scripts": {
-  "postinstall": "npm run build",
-  "build": "tsc",
-  "start": "node dist/index.js",
-  "dev": "ts-node-dev src/index.ts"
-}
-,
+  "scripts": {
+    "postinstall": "npm run build",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev src/index.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.775.0",
     "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
