@@ -1,14 +1,18 @@
 import { Request, Response } from "express";
-import db from "../config/db"; // Asegúrate de que la conexión está bien importada
+import db  from "../config/db";
 
 // ✅ Obtener todos los videos
 export const getVideos = async (req: Request, res: Response): Promise<void> => {
+    let connection;
     try {
-        const [rows]: any = await db.promise().query("SELECT * FROM Videos");
+        connection = await db.getConnection();
+        const [rows]: any = await connection.query("SELECT * FROM Videos");
         res.json(rows);
     } catch (error) {
-        console.error("Error obteniendo videos:", error);
+        console.error("❌ Error obteniendo videos:", error);
         res.status(500).json({ message: "Error obteniendo los videos." });
+    } finally {
+        if (connection) connection.release();
     }
 };
 
@@ -21,9 +25,12 @@ export const markVideoAsWatched = async (req: Request, res: Response): Promise<v
         return;
     }
 
+    let connection;
     try {
+        connection = await db.getConnection();
+
         // Verificar si el usuario ya vio este video
-        const [existing]: any = await db.promise().query(
+        const [existing]: any = await connection.query(
             "SELECT * FROM Usuario_Videos WHERE id_usuario = ? AND id_video = ?",
             [id_usuario, id_video]
         );
@@ -34,7 +41,7 @@ export const markVideoAsWatched = async (req: Request, res: Response): Promise<v
         }
 
         // Obtener los puntos del video
-        const [video]: any = await db.promise().query("SELECT puntos FROM Videos WHERE id_video = ?", [id_video]);
+        const [video]: any = await connection.query("SELECT puntos FROM Videos WHERE id_video = ?", [id_video]);
         if (video.length === 0) {
             res.status(404).json({ message: "Video no encontrado." });
             return;
@@ -42,22 +49,28 @@ export const markVideoAsWatched = async (req: Request, res: Response): Promise<v
 
         const puntos = video[0].puntos;
 
-        // Insertar el registro de visualización
-        await db.promise().query(
+        // Insertar el registro de visualización y actualizar puntos en una sola transacción
+        await connection.beginTransaction();
+
+        await connection.query(
             "INSERT INTO Usuario_Videos (id_usuario, id_video) VALUES (?, ?)",
             [id_usuario, id_video]
         );
 
-        // Sumar puntos al usuario
-        await db.promise().query(
+        await connection.query(
             "UPDATE Usuarios SET puntos_totales = puntos_totales + ? WHERE id_usuario = ?",
             [puntos, id_usuario]
         );
 
+        await connection.commit();
         res.json({ message: `Has ganado ${puntos} puntos por ver este video.` });
+
     } catch (error) {
-        console.error("Error registrando visualización de video:", error);
+        if (connection) await connection.rollback();
+        console.error("❌ Error registrando visualización de video:", error);
         res.status(500).json({ message: "Error interno al registrar el video visto." });
+    } finally {
+        if (connection) connection.release();
     }
 };
 
@@ -70,16 +83,20 @@ export const addVideo = async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
+    let connection;
     try {
-        await db.promise().query(
+        connection = await db.getConnection();
+        await connection.query(
             "INSERT INTO Videos (titulo, url_video, descripcion, puntos) VALUES (?, ?, ?, ?)",
             [titulo, url_video, descripcion, puntos]
         );
 
         res.status(201).json({ message: "Video agregado correctamente." });
     } catch (error) {
-        console.error("Error agregando video:", error);
+        console.error("❌ Error agregando video:", error);
         res.status(500).json({ message: "Error interno al agregar el video." });
+    } finally {
+        if (connection) connection.release();
     }
 };
 
@@ -93,8 +110,10 @@ export const updateVideo = async (req: Request, res: Response): Promise<void> =>
         return;
     }
 
+    let connection;
     try {
-        const [result]: any = await db.promise().query(
+        connection = await db.getConnection();
+        const [result]: any = await connection.query(
             "UPDATE Videos SET titulo = ?, url_video = ?, descripcion = ?, puntos = ? WHERE id_video = ?", 
             [titulo, url_video, descripcion, puntos, id_video]
         );
@@ -106,8 +125,10 @@ export const updateVideo = async (req: Request, res: Response): Promise<void> =>
 
         res.json({ message: "Video actualizado correctamente." });
     } catch (error) {
-        console.error("Error actualizando video:", error);
+        console.error("❌ Error actualizando video:", error);
         res.status(500).json({ message: "Error interno al actualizar el video." });
+    } finally {
+        if (connection) connection.release();
     }
 };
 
@@ -115,8 +136,10 @@ export const updateVideo = async (req: Request, res: Response): Promise<void> =>
 export const deleteVideo = async (req: Request, res: Response): Promise<void> => {
     const { id_video } = req.params;
 
+    let connection;
     try {
-        const [result]: any = await db.promise().query("DELETE FROM Videos WHERE id_video = ?", [id_video]);
+        connection = await db.getConnection();
+        const [result]: any = await connection.query("DELETE FROM Videos WHERE id_video = ?", [id_video]);
 
         if (result.affectedRows === 0) {
             res.status(404).json({ message: "No se encontró el video para eliminar." });
@@ -125,7 +148,9 @@ export const deleteVideo = async (req: Request, res: Response): Promise<void> =>
 
         res.json({ message: "Video eliminado correctamente." });
     } catch (error) {
-        console.error("Error eliminando video:", error);
+        console.error("❌ Error eliminando video:", error);
         res.status(500).json({ message: "Error interno al eliminar el video." });
+    } finally {
+        if (connection) connection.release();
     }
 };

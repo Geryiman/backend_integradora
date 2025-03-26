@@ -1,5 +1,5 @@
-import { RowDataPacket } from "mysql2";
-import connection from "../config/db";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
+import db from "../config/db";
 
 export interface Premio {
     id_premio?: number;
@@ -8,57 +8,72 @@ export interface Premio {
     puntos_necesarios: number;
 }
 
+/**
+ * 📌 Obtener todos los premios disponibles
+ */
 export const obtenerPremios = async (): Promise<Premio[]> => {
-    return new Promise((resolve, reject) => {
-        connection.query("SELECT * FROM Recompensas", (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results as Premio[]);
-            }
-        });
-    });
+    try {
+        const [rows] = await db.execute("SELECT * FROM Premios");
+        return rows as Premio[];
+    } catch (error) {
+        console.error("❌ Error en obtenerPremios:", error);
+        throw new Error("Error al obtener los premios.");
+    }
 };
 
+/**
+ * 📌 Canjear un premio si el usuario tiene los puntos suficientes
+ */
 export const canjearPremio = async (id_usuario: number, id_premio: number): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-        connection.query(
+    try {
+        // 🔹 Obtener los puntos actuales del usuario
+        const [userResults] = await db.execute<RowDataPacket[]>(
             "SELECT puntos_totales FROM Usuarios WHERE id_usuario = ?",
-            [id_usuario],
-            (err, results: RowDataPacket[]) => {
-                if (err) {
-                    reject(err);
-                } else if (results.length === 0) {
-                    reject("Usuario no encontrado");
-                } else {
-                    const puntosUsuario = results[0].puntos_totales;
-                    connection.query(
-                        "SELECT puntos_necesarios FROM Recompensas WHERE id_recompensa = ?",
-                        [id_premio],
-                        (err, results: RowDataPacket[]) => {
-                            if (err) {
-                                reject(err);
-                            } else if (results.length === 0) {
-                                reject("Premio no encontrado");
-                            } else {
-                                const puntosRequeridos = results[0].puntos_necesarios;
-                                if (puntosUsuario >= puntosRequeridos) {
-                                    connection.query(
-                                        "UPDATE Usuarios SET puntos_totales = puntos_totales - ? WHERE id_usuario = ?",
-                                        [puntosRequeridos, id_usuario],
-                                        (err) => {
-                                            if (err) reject(err);
-                                            else resolve(true);
-                                        }
-                                    );
-                                } else {
-                                    reject("Puntos insuficientes");
-                                }
-                            }
-                        }
-                    );
-                }
-            }
+            [id_usuario]
         );
-    });
+
+        if (userResults.length === 0) {
+            throw new Error("Usuario no encontrado.");
+        }
+
+        const puntosUsuario = userResults[0].puntos_totales;
+
+        // 🔹 Obtener los puntos necesarios para el premio
+        const [premioResults] = await db.execute<RowDataPacket[]>(
+            "SELECT puntos_necesarios FROM Premios WHERE id_premio = ?",
+            [id_premio]
+        );
+
+        if (premioResults.length === 0) {
+            throw new Error("Premio no encontrado.");
+        }
+
+        const puntosRequeridos = premioResults[0].puntos_necesarios;
+
+        // 🔹 Verificar si el usuario tiene suficientes puntos
+        if (puntosUsuario < puntosRequeridos) {
+            throw new Error("Puntos insuficientes para canjear este premio.");
+        }
+
+        // 🔹 Descontar los puntos del usuario
+        const [updateResult] = await db.execute<ResultSetHeader>(
+            "UPDATE Usuarios SET puntos_totales = puntos_totales - ? WHERE id_usuario = ?",
+            [puntosRequeridos, id_usuario]
+        );
+
+        if (updateResult.affectedRows === 0) {
+            throw new Error("Error al actualizar los puntos del usuario.");
+        }
+
+        // 🔹 Registrar el canje en la base de datos
+        await db.execute(
+            "INSERT INTO Canjes (id_usuario, id_premio, fecha_canje) VALUES (?, ?, NOW())",
+            [id_usuario, id_premio]
+        );
+
+        return true;
+    } catch (error) {
+        console.error("❌ Error en canjearPremio:", error);
+        throw new Error(error as string);
+    }
 };
