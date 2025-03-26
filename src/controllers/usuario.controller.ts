@@ -138,7 +138,7 @@ export const uploadProfileImage = async (
 
   try {
     const fileName = `perfil-${Date.now()}-${req.file.originalname}`;
-    const key = `perfiles/${id_usuario}/${fileName}`;
+    const key = `ecopet/perfiles/${id_usuario}/${fileName}`;
 
     const uploadParams: PutObjectCommandInput = {
       Bucket: BUCKET_NAME,

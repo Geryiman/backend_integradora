@@ -49,7 +49,7 @@ CREATE TABLE Tareas (
     tipo ENUM('Normal', 'Especial') DEFAULT 'Normal',
     fecha_inicio DATETIME NULL,
     fecha_fin DATETIME NULL,
-    botellas_necesarias INT NOT NULL DEFAULT 1  -- Nueva columna
+    botellas_necesarias INT NOT NULL DEFAULT 1
 );
 
 -- 📌 Tabla de Códigos QR (Vinculados a Retos)
@@ -135,6 +135,23 @@ CREATE TABLE Historial (
     FOREIGN KEY (id_video) REFERENCES Videos(id_video) ON DELETE SET NULL,
     FOREIGN KEY (id_deposito) REFERENCES Depositos(id_deposito) ON DELETE SET NULL,
     FOREIGN KEY (id_canje) REFERENCES Canjes(id_canje) ON DELETE SET NULL
+);
+
+-- 📌 Tabla de Escaneos de QR por Usuario
+CREATE TABLE IF NOT EXISTS Usuario_QR (
+    id_usuario INT NOT NULL,
+    id_qr INT NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_usuario, id_qr),
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_qr) REFERENCES CodigosQR(id_qr) ON DELETE CASCADE
+);
+
+-- ✅ Tabla acumuladora de botellas escaneadas
+CREATE TABLE IF NOT EXISTS Usuario_Botellas (
+    id_usuario INT PRIMARY KEY,
+    botellas_contadas INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE
 );
 
 -- 📌 Insertar Tipos de Usuario
