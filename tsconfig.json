@@ -9,5 +9,11 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "strict": true,
+"esModuleInterop": true,
+"moduleResolution": "node",
+"module": "commonjs",
+"target": "es6"
+
 }

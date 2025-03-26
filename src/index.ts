@@ -16,6 +16,7 @@ import qrRoutes from "./routes/qr.routes";
 import videosRoutes from "./routes/videos.routes";
 import premiosRoutes from "./routes/premios.routes";
 
+
 dotenv.config();
 
 const app = express();
@@ -61,6 +62,7 @@ async function iniciarServidor() {
   app.use("/api/qr", qrRoutes);
   app.use("/api/videos", videosRoutes);
   app.use("/premios", premiosRoutes);
+  app.use("/api/qr", qrRoutes);
 
   app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
