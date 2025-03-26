@@ -1,25 +1,28 @@
 import { Request, Response } from "express";
-import connection from "../config/db";
+import pool from "../config/db";
 import { ResultSetHeader } from "mysql2";
 
-export const getCanjes = (req: Request, res: Response) => {
-  connection.query("SELECT * FROM Canjes", (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+export const getCanjes = async (req: Request, res: Response) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM Canjes");
+    res.json(rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-export const createCanje = (req: Request, res: Response) => {
+export const createCanje = async (req: Request, res: Response) => {
   const { id_usuario, id_recompensa } = req.body;
 
-  connection.query(
-    "INSERT INTO Canjes (id_usuario, id_recompensa) VALUES (?, ?)",
-    [id_usuario, id_recompensa],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO Canjes (id_usuario, id_recompensa) VALUES (?, ?)",
+      [id_usuario, id_recompensa]
+    );
 
-      const result = results as ResultSetHeader;
-      res.json({ message: "Canje registrado", id: result.insertId });
-    }
-  );
+    const insert = result as ResultSetHeader;
+    res.json({ message: "Canje registrado", id: insert.insertId });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 };

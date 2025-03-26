@@ -1,25 +1,27 @@
 import { Request, Response } from "express";
-import connection from "../config/db";
+import pool from "../config/db";
 import { ResultSetHeader } from "mysql2";
 
-export const getRecompensas = (req: Request, res: Response) => {
-  connection.query("SELECT * FROM Recompensas", (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+export const getRecompensas = async (req: Request, res: Response) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM Recompensas");
+    res.json(rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-export const createRecompensa = (req: Request, res: Response) => {
+export const createRecompensa = async (req: Request, res: Response) => {
   const { nombre, puntos_necesarios } = req.body;
 
-  connection.query(
-    "INSERT INTO Recompensas (nombre, puntos_necesarios) VALUES (?, ?)",
-    [nombre, puntos_necesarios],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
+  try {
+    const [result] = await pool.query<ResultSetHeader>(
+      "INSERT INTO Recompensas (nombre, puntos_necesarios) VALUES (?, ?)",
+      [nombre, puntos_necesarios]
+    );
 
-      const result = results as ResultSetHeader;
-      res.json({ message: "Recompensa creada", id: result.insertId });
-    }
-  );
+    res.json({ message: "Recompensa creada", id: result.insertId });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 };
