@@ -192,3 +192,30 @@ export const obtenerQRDisponible = async (req: Request, res: Response): Promise<
     res.status(500).json({ message: "Error del servidor" });
   }
 };
+// 📌 Consultar si el código ya fue canjeado (para Arduino)
+export const verificarEstadoQR = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { codigo } = req.params;
+
+    const [qr] = await db.query<RowDataPacket[]>(
+      "SELECT estado FROM CodigosQR WHERE codigo = ?",
+      [codigo]
+    );
+
+    if (qr.length === 0) {
+      res.status(404).json({ message: "Código QR no encontrado" });
+      return;
+    }
+
+    const estado = qr[0].estado;
+
+    res.status(200).json({
+      codigo,
+      canjeado: estado === "Canjeado"
+    });
+
+  } catch (error) {
+    console.error("❌ Error al verificar estado de QR:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
+};

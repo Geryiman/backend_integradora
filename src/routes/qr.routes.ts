@@ -2,7 +2,8 @@ import { Router } from "express";
 import {
   generarQR,
   canjearQR,
-  obtenerQRDisponible
+  obtenerQRDisponible,
+  verificarEstadoQR
 } from "../controllers/qr.controller";
 
 const router = Router();
@@ -15,5 +16,6 @@ router.post("/canjear", canjearQR);
 
 // 📌 Obtener un código QR disponible (Arduino, app, etc.)
 router.get("/disponible/:id_tarea", obtenerQRDisponible);
+router.get("/estado/:codigo", verificarEstadoQR);
 
 export default router;
