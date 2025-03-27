@@ -2,13 +2,11 @@ import { Request, Response } from "express";
 import pool from "../config/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-// 📌 Obtener todas las recompensas (opcionalmente filtrar por nombre)
-export const getRecompensas = async (req: Request, res: Response) => {
+export const getRecompensas = async (req: Request, res: Response): Promise<void> => {
   try {
     const { nombre } = req.query;
-
     let query = "SELECT * FROM Recompensas";
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (nombre) {
       query += " WHERE nombre LIKE ?";
@@ -22,8 +20,7 @@ export const getRecompensas = async (req: Request, res: Response) => {
   }
 };
 
-// 📌 Obtener recompensa por ID
-export const getRecompensaById = async (req: Request, res: Response) => {
+export const getRecompensaById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const [rows] = await pool.query<RowDataPacket[]>(
@@ -32,7 +29,8 @@ export const getRecompensaById = async (req: Request, res: Response) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Recompensa no encontrada" });
+      res.status(404).json({ error: "Recompensa no encontrada" });
+      return;
     }
 
     res.json(rows[0]);
@@ -41,12 +39,12 @@ export const getRecompensaById = async (req: Request, res: Response) => {
   }
 };
 
-// 📌 Crear nueva recompensa
-export const createRecompensa = async (req: Request, res: Response) => {
+export const createRecompensa = async (req: Request, res: Response): Promise<void> => {
   const { nombre, puntos_necesarios } = req.body;
 
   if (!nombre || typeof puntos_necesarios !== "number" || puntos_necesarios <= 0) {
-    return res.status(400).json({ error: "Datos inválidos para crear recompensa" });
+    res.status(400).json({ error: "Datos inválidos" });
+    return;
   }
 
   try {
@@ -56,7 +54,7 @@ export const createRecompensa = async (req: Request, res: Response) => {
     );
 
     res.status(201).json({
-      message: "Recompensa creada con éxito",
+      message: "Recompensa creada",
       id_recompensa: result.insertId,
       nombre,
       puntos_necesarios
@@ -66,25 +64,24 @@ export const createRecompensa = async (req: Request, res: Response) => {
   }
 };
 
-// 📌 Actualizar recompensa
-export const updateRecompensa = async (req: Request, res: Response) => {
+export const updateRecompensa = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { nombre, puntos_necesarios } = req.body;
 
   if (!nombre || typeof puntos_necesarios !== "number" || puntos_necesarios <= 0) {
-    return res.status(400).json({ error: "Datos inválidos para actualizar recompensa" });
+    res.status(400).json({ error: "Datos inválidos para actualizar" });
+    return;
   }
 
   try {
     const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE Recompensas 
-       SET nombre = ?, puntos_necesarios = ? 
-       WHERE id_recompensa = ?`,
+      `UPDATE Recompensas SET nombre = ?, puntos_necesarios = ? WHERE id_recompensa = ?`,
       [nombre, puntos_necesarios, id]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Recompensa no encontrada" });
+      res.status(404).json({ error: "Recompensa no encontrada" });
+      return;
     }
 
     res.json({ message: "Recompensa actualizada", id_recompensa: id });
@@ -93,8 +90,7 @@ export const updateRecompensa = async (req: Request, res: Response) => {
   }
 };
 
-// 📌 Eliminar recompensa
-export const deleteRecompensa = async (req: Request, res: Response) => {
+export const deleteRecompensa = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -104,10 +100,11 @@ export const deleteRecompensa = async (req: Request, res: Response) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Recompensa no encontrada" });
+      res.status(404).json({ error: "Recompensa no encontrada" });
+      return;
     }
 
-    res.json({ message: "Recompensa eliminada correctamente", id_recompensa: id });
+    res.json({ message: "Recompensa eliminada", id_recompensa: id });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
