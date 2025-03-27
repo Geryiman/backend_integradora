@@ -223,3 +223,58 @@ export const deleteUsuario = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: err.message });
   }
 };
+// =======================
+// 📌 Obtener perfil completo del usuario con progreso
+// =======================
+export const getPerfilCompleto = async (req: Request, res: Response): Promise<void> => {
+  const { id_usuario } = req.params;
+
+  try {
+    // 1. Datos del usuario
+    const [[usuario]] = await pool.query<RowDataPacket[]>(
+      `SELECT id_usuario, nombre, email, puntos_totales, profileImage 
+       FROM Usuarios WHERE id_usuario = ?`,
+      [id_usuario]
+    );
+
+    if (!usuario) {
+      res.status(404).json({ error: "Usuario no encontrado" });
+      return;
+    }
+
+    // 2. Botellas escaneadas
+    const [[botellas]] = await pool.query<RowDataPacket[]>(
+      `SELECT botellas_contadas FROM Usuario_Botellas WHERE id_usuario = ?`,
+      [id_usuario]
+    );
+
+    // 3. Tareas completadas
+    const [tareas] = await pool.query<RowDataPacket[]>(
+      `SELECT t.descripcion, t.puntos, ut.fecha_completada
+       FROM Usuario_Tarea ut
+       JOIN Tareas t ON ut.id_tarea = t.id_tarea
+       WHERE ut.id_usuario = ?
+       ORDER BY ut.fecha_completada DESC`,
+      [id_usuario]
+    );
+
+    // 4. Recompensas canjeadas
+    const [canjes] = await pool.query<RowDataPacket[]>(
+      `SELECT r.nombre, c.fecha_canje
+       FROM Canjes c
+       JOIN Recompensas r ON c.id_recompensa = r.id_recompensa
+       WHERE c.id_usuario = ?
+       ORDER BY c.fecha_canje DESC`,
+      [id_usuario]
+    );
+
+    res.json({
+      usuario,
+      botellas_contadas: botellas?.botellas_contadas || 0,
+      tareas_completadas: tareas,
+      recompensas_canjeadas: canjes
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};

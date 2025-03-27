@@ -1,27 +1,18 @@
-import express from "express";
-import { 
-    getVideos, 
-    addVideo, 
-    updateVideo, 
-    deleteVideo, 
-    markVideoAsWatched 
+import { Router } from "express";
+import {
+  getVideos,
+  markVideoAsWatched,
+  addVideo,
+  updateVideo,
+  deleteVideo,
 } from "../controllers/videos.controller";
 
-const router = express.Router();
+const router = Router();
 
-// ✅ Ruta para obtener todos los videos
 router.get("/", getVideos);
-
-// ✅ Ruta para agregar un nuevo video
+router.post("/watch", markVideoAsWatched);
 router.post("/", addVideo);
-
-// ✅ Ruta para actualizar un video por ID
 router.put("/:id_video", updateVideo);
-
-// ✅ Ruta para eliminar un video por ID
 router.delete("/:id_video", deleteVideo);
-
-// ✅ Ruta para registrar que un usuario vio un video
-router.post("/visto", markVideoAsWatched);
 
 export default router;

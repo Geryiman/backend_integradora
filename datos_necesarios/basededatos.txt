@@ -154,6 +154,9 @@ CREATE TABLE IF NOT EXISTS Usuario_Botellas (
     FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE
 );
 
+ALTER TABLE Recompensas ADD COLUMN stock INT NOT NULL DEFAULT 10;
+
+
 -- 📌 Insertar Tipos de Usuario
 INSERT INTO TipoUsuarios (tipo) VALUES ('Usuario'), ('Administrador');
 
