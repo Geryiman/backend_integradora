@@ -92,15 +92,14 @@ export const getTareasCompletadas = async (req: Request, res: Response) => {
   try {
     const { id_usuario } = req.params;
     const tareas = await TareaModel.getTareasCompletadas(Number(id_usuario));
-    if (!tareas.length) {
-      res.status(404).json({ error: "No hay tareas completadas para este usuario" });
-      return;
-    }
-    res.json(tareas);
+
+    // ✅ Siempre devolver 200 OK, aunque esté vacío
+    res.status(200).json(tareas); // <--- ya no mandamos 404
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // 📌 Obtener tareas pendientes por usuario
 export const getTareasPendientes = async (req: Request, res: Response) => {
