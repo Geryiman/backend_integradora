@@ -7,13 +7,13 @@ import {
 
 const router = Router();
 
-// 📌 Generar un nuevo código QR manualmente (uso administrativo)
+// 📌 Generar un código QR manualmente (admin o sistema)
 router.post("/generar", generarQR);
 
-// 📌 Registrar escaneo de QR desde la app móvil
+// 📌 Escanear QR desde app móvil o Arduino (contar botella, completar tarea)
 router.post("/canjear", canjearQR);
 
-// 📌 Obtener QR disponible automáticamente (Arduino u otro sistema)
+// 📌 Obtener un código QR disponible (Arduino, app, etc.)
 router.get("/disponible/:id_tarea", obtenerQRDisponible);
 
 export default router;
