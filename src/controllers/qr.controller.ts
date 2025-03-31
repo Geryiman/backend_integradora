@@ -28,7 +28,7 @@ export const generarQR = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const codigoQR = generarCodigoAleatorio(20);
+    const codigoQR = generarCodigoAleatorio(5);
 
     await db.query<OkPacket>(
       "INSERT INTO CodigosQR (id_tarea, codigo, estado, fecha_generado) VALUES (?, ?, 'Generado', NOW())",
