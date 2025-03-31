@@ -1,0 +1,13 @@
+.contenedor{
+    padding: 60px;
+}
+
+.contenedor-form-registro{
+    display: flex;
+    justify-content: center;
+}
+
+.contenedor-form-actualizar{
+    display: flex;
+    justify-content: center;
+}
